@@ -10,7 +10,7 @@ app = Flask(__name__)
 # Load the Spanish model
 nlp = spacy.load("es_core_news_md")
 
-prueba = pd.read_excel("C:/Users/carlos.gonzalez/Documents/Contenido.xlsx")
+prueba = pd.read_excel("C:/Users/UsuarioPC/Documents/Chatbot/Contenido.xlsx")
 prueba['nombre'] = prueba['nombre'].apply(lambda x: x.capitalize())
 
 tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')

@@ -3,13 +3,14 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModel
 import torch
 import spacy
+import re
 
 app = Flask(__name__)
 
 # Load the Spanish model
 nlp = spacy.load("es_core_news_md")
 
-prueba = pd.read_excel("C:/Users/UsuarioPC/Documents/Chatbot/Contenido.xlsx")
+prueba = pd.read_excel("C:/Users/carlos.gonzalez/Documents/Contenido.xlsx")
 prueba['nombre'] = prueba['nombre'].apply(lambda x: x.capitalize())
 
 tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
@@ -20,7 +21,7 @@ def extract_text_after_keywords(text: str) -> list[str]:
     matches = [str(token) for token in doc if token.pos_ == 'NOUN' or token.pos_ == 'ADJ' or token.pos_ == 'PROPN']
     matches2 = ' '.join(matches)
     matches2 = [matches2]
-    nosolas = ['precios', 'dato', 'precio', 'indicador', 'ficha', 'datos', 'indicadores', 'fichas', 'información', 'consulta', 'estudio', 'tablero', 'plataforma', 'estudios', 'consultas', 'industria', 'industrias']    
+    nosolas = ['precios', 'dato', 'precio', 'indicador', 'ficha', 'datos', 'indicadores', 'fichas', 'información', 'consulta', 'estudio', 'tablero', 'plataforma', 'estudios', 'consultas', 'industria', 'industrias', 'jalisco', 'sector']        
     matches = [m for m in matches if m not in nosolas]
     matchesf = matches + matches2
     return matchesf
@@ -48,6 +49,39 @@ def sentsim(sentenceslist: list[str]) -> float:
     sim = cosi(sentence_embeddings[0], sentence_embeddings[1])
     return sim
 
+def agradecimiento(texto: str) -> bool:
+     # Define a list of keywords or phrases typically associated with acknowledgments
+    texto = texto.lower()
+    acknowledgment_keywords = [
+        'agradecimientos',
+        'gracias',
+        'agradezco',
+        'agradecida',
+        'agradecido',
+        'valoro',
+        'aprecio',
+        'agradezco a'
+    ]
+    
+    not_finished = ['también', 'tambien', 'ademas', 'además', 'dame', 'quiero', 'pero']
+    
+    # Convert the text to lowercase to make the search case-insensitive
+    texto = texto.lower()
+    
+    # Check if any of the acknowledgment keywords are in the text
+    cond = []
+    cond2 = []
+    for w in not_finished:
+        cond.append(re.search(r'(\b)*' + re.escape(w) + r'(\b)*', texto))
+
+    for keyword in acknowledgment_keywords:
+        cond2.append(re.search(r'(\b)*' + re.escape(keyword) + r'(\b)*', texto))
+        
+    if any(cond2) and any(cond) == False:
+        return True
+    else:
+        return False
+
 def consulta(texto: str) -> list[str]:
     lista = []
     peticion = extract_text_after_keywords(texto)
@@ -68,10 +102,12 @@ def recomendacion(texto: str) -> list[str]:
     res = []
     if check_person(texto) == True:
         res.append('Lo lamento, no contamos con la información que se solicita')
+    elif agradecimiento(texto) == True:
+        res.append('Estoy para servir :)')
     else:
         lista = consulta(texto)
         if len(lista) == 0:
-            res.append('Lo lamento, no entiendo tu consulta, pero con gusto puedes preguntarme de nuevo, te prometo haré un mayor esfuerzo')
+            res.append('Lo lamento, es posible que no contemos con esa información o que no entienda tu consulta, pero con gusto puedes preguntarme de nuevo, te prometo haré un mayor esfuerzo')
         else:
             for n in lista:
                 tipo = prueba.set_index('nombre').loc[n]['tipo']
@@ -83,25 +119,25 @@ def recomendacion(texto: str) -> list[str]:
                         l = conjunto[c][1]
                         if t[-1] == 'a':
                             if n[-1] == 'a' or n[-2:] == 'as' or n[-2:] == 'ón':
-                                res.append('Te recomiendo consultar la {} sobre la {} en el siguiente link: {}'.format(t, n, l))
+                                res.append('Puedes consultar la {} sobre la {} en el siguiente link: {}'.format(t, n, l))
                             else:
-                                res.append('Te recomiendo consultar la {} sobre el {} en el siguiente link: {}'.format(t, n, l))
+                                res.append('Puedes consultar la {} sobre el {} en el siguiente link: {}'.format(t, n, l))
                         else:
                             if n[-1] == 'a' or n[-2:] == 'as' or n[-2:] == 'ón':
-                                res.append('Te recomiendo consultar el {} sobre la {} en el siguiente link: {}'.format(t, n, l))
+                                res.append('Puedes consultar el {} sobre la {} en el siguiente link: {}'.format(t, n, l))
                             else:
-                                res.append('Te recomiendo consultar el {} sobre el {} en el siguiente link: {}'.format(t, n, l))
+                                res.append('Puedes consultar el {} sobre el {} en el siguiente link: {}'.format(t, n, l))
                 else:
                     if tipo[-1] == 'a':
                         if n[-1] == 'a' or n[-2:] == 'as' or n[-2:] == 'ón':
-                            res.append('Te recomiendo consultar la {} sobre la {} en el siguiente link: {}'.format(tipo, n, link))
+                            res.append('Puedes consultar la {} sobre la {} en el siguiente link: {}'.format(tipo, n, link))
                         else:
-                            res.append('Te recomiendo consultar la {} sobre el {} en el siguiente link: {}'.format(tipo, n, link))
+                            res.append('Puedes consultar la {} sobre el {} en el siguiente link: {}'.format(tipo, n, link))
                     else:
                         if n[-1] == 'a' or n[-2:] == 'as' or n[-2:] == 'ón':
-                            res.append('Te recomiendo consultar el {} sobre la {} en el siguiente link: {}'.format(tipo, n, link))
+                            res.append('Puedes consultar el {} sobre la {} en el siguiente link: {}'.format(tipo, n, link))
                         else:
-                            res.append('Te recomiendo consultar el {} sobre el {} en el siguiente link: {}'.format(tipo, n, link))
+                            res.append('Puedes consultar el {} sobre el {} en el siguiente link: {}'.format(tipo, n, link))
     return res
 
 @app.route('/')

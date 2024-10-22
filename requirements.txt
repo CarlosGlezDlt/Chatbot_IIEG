@@ -1,0 +1,4 @@
+pypdf
+langchain
+chromadb
+python-dotenv

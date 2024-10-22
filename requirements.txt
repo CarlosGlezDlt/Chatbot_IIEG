@@ -1,5 +1,6 @@
 flask
 pypdf
 langchain
+langchain_community
 chromadb
 python-dotenv

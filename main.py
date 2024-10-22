@@ -35,7 +35,7 @@ def query(model: str, token: str, query_text: str, k: int) -> str:
     'Pregunta': {query_text}\n
     'Respuesta': {respuesta}
 
-    Responde la a la siguiente pregunta tenindo en cuenta la pregunta y la respesta anterior: ¿'Hubo información necesaria para contestar la pregunta? Contesta solo Sí o No'
+    Responde a la siguiente pregunta tenindo en cuenta la pregunta y la respesta anterior: ¿'Hubo información necesaria para contestar la pregunta? Contesta solo Sí o No'
 
     """
 
